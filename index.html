@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Функц Генераторын Симуляци</title>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2d2d2d;
+            color: #fff;
+            padding: 20px;
+        }
+
+        /* Outer Frame */
+        .outer-frame {
+            width: 100%;
+            max-width: 850px;
+            margin: 0 auto;
+            background-color: #333;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+
+        /* Display Section */
+        .display {
+            font-size: 32px;
+            font-weight: bold;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .control-panel label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+            display: block;
+            color: #ccc;
+        }
+
+        /* Buttons Styling */
+        .control-panel button {
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        .control-panel button:hover {
+            background-color: #005f73;
+        }
+
+        .active {
+            background-color: #004e58; /* Active button color */
+        }
+
+        /* Sliders for Frequency and Amplitude */
+        .slider-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .slider-container input {
+            width: 150px;
+        }
+
+        .slider-value {
+            width: 60px;
+            text-align: center;
+        }
+
+        /* Output Section */
+        .output {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #ccc;
+        }
+
+        .output p {
+            margin: 5px 0;
+        }
+
+        /* Sweep Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar span {
+            display: block;
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 5px;
+        }
+
+        /* Grid Layout for Waveform Buttons */
+        .waveform-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Input fields for Frequency and Amplitude */
+        .input-field-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .input-field-container input {
+            width: 100px;
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="outer-frame">
+    <h1>Функц Генераторын Симуляци</h1>
+    <div class="container">
+        <!-- Display Section -->
+        <div class="display" id="display-0000">0000</div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <!-- Waveform Selection -->
+            <div>
+                <label>Далайн хэлбэр:</label>
+                <div class="waveform-buttons">
+                    <button id="sine">Синус</button>
+                    <button id="square">Т квадрат</button>
+                    <button id="triangle">Төрөлт</button>
+                    <button id="sawtooth">Үзүүрт</button>
+                </div>
+            </div>
+
+            <!-- Frequency Control -->
+            <div>
+                <label>Давтамж (Гц):</label>
+                <div class="slider-container">
+                    <input type="range" id="frequency-slider" min="1" max="10000" value="440" step="10">
+                    <span id="frequency-value" class="slider-value">440</span>
+                </div>
+                <div class="input-field-container">
+                    <input type="number" id="frequency-input" value="440">
+                    <span>Гц</span>
+                </div>
+            </div>
+
+            <!-- Amplitude Control -->
+            <div>
+                <label>Амплитуд:</label>
+                <div class="slider-container">
+                    <input type="range" id="amplitude-slider" min="0.1" max="2" value="0.5" step="0.1">
+                    <span id="amplitude-value" class="slider-value">0.5</span>
+                </div>
+                <div class="input-field-container">
+                    <input type="number" id="amplitude-input" value="0.5" step="0.1">
+                    <span>Амплитуд</span>
+                </div>
+            </div>
+
+            <!-- Modulation Options -->
+            <div>
+                <label>Модуляцийн сонголт:</label>
+                <button id="am-modulation">AM</button>
+                <button id="fm-modulation">FM</button>
+            </div>
+
+            <!-- Sweep Options -->
+            <div>
+                <label>Sweep функцийг тохируулах:</label>
+                <button id="sweep">Sweep эхлүүлэх</button>
+                <div class="progress-bar" id="sweep-progress"><span id="sweep-progress-bar"></span></div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="output">
+            <p>Одоогийн далайн хэлбэр: <span id="current-waveform">Синус</span></p>
+            <p>Одоогийн давтамж: <span id="current-frequency">440 Гц</span></p>
+            <p>Одоогийн амплитуд: <span id="current-amplitude">0.5</span></p>
+            <p>Одоогийн модуляци: <span id="current-modulation">Тогтмол</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Web Audio API setup
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let oscillator = null;
+let gainNode = null;
+let modulationType = 'AM';
+let sweepActive = false;
+let sweepInterval = null;
+let sweepProgress = 0;
+
+// DOM element references
+const sineButton = document.getElementById('sine');
+const squareButton = document.getElementById('square');
+const triangleButton = document.getElementById('triangle');
+const sawtoothButton = document.getElementById('sawtooth');
+const frequencySlider = document.getElementById('frequency-slider');
+const frequencyValue = document.getElementById('frequency-value');
+const amplitudeSlider = document.getElementById('amplitude-slider');
+const amplitudeValue = document.getElementById('amplitude-value');
+const modulationButtons = document.querySelectorAll('[id^="am-modulation"], [id^="fm-modulation"]');
+const sweepButton = document.getElementById('sweep');
+const sweepProgressBar = document.getElementById('sweep-progress-bar');
+const display = document.getElementById('display-0000');
+const currentWaveform = document.getElementById('current-waveform');
+const currentFrequency = document.getElementById('current-frequency');
+const currentAmplitude = document.getElementById('current-amplitude');
+const currentModulation = document.getElementById('current-modulation');
+const frequencyInput = document.getElementById('frequency-input');
+const amplitudeInput = document.getElementById('amplitude-input');
+
+// Update display
+function updateDisplay() {
+    currentWaveform.textContent = sineButton.classList.contains('active') ? 'Синус' :
+                                  squareButton.classList.contains('active') ? 'Т квадрат' :
+                                  triangleButton.classList.contains('active') ? 'Төрөлт' : 'Үзүүрт';
+    currentFrequency.textContent = `${frequencySlider.value} Гц`;
+    currentAmplitude.textContent = amplitudeSlider.value;
+    currentModulation.textContent = modulationType === 'AM' ? 'AM' : 'FM';
+}
+
+// Initialize oscillator
+function initOscillator() {
+    if (oscillator) {
+        oscillator.stop();
+        oscillator.disconnect();
+    }
+
+    oscillator = audioContext.createOscillator();
+    gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    switch (true) {
+        case sineButton.classList.contains('active'):
+            oscillator.type = 'sine';
+            break;
+        case squareButton.classList.contains('active'):
+            oscillator.type = 'square';
+            break;
+        case triangleButton.classList.contains('active'):
+            oscillator.type = 'triangle';
+            break;
+        case sawtoothButton.classList.contains('active'):
+            oscillator.type = 'sawtooth';
+            break;
+        default:
+            oscillator.type = 'sine';
+    }
+
+    oscillator.frequency.setValueAtTime(frequencySlider.value, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(amplitudeSlider.value, audioContext.currentTime);
+    oscillator.start();
+}
+
+// Start/stop sweep
+function toggleSweep() {
+    if (sweepActive) {
+        clearInterval(sweepInterval);
+        sweepProgress = 0;
+        sweepProgressBar.style.width = '0%';
+    } else {
+        sweepInterval = setInterval(() => {
+            if (sweepProgress >= 100) {
+                clearInterval(sweepInterval);
+            } else {
+                sweepProgress += 1;
+                sweepProgressBar.style.width = `${sweepProgress}%`;
+            }
+        }, 50);
+    }
+
+    sweepActive = !sweepActive;
+}
+
+// Event listeners for buttons and inputs
+sineButton.addEventListener('click', () => { sineButton.classList.add('active'); squareButton.classList.remove('active'); triangleButton.classList.remove('active'); sawtoothButton.classList.remove('active'); initOscillator(); updateDisplay(); });
+squareButton.addEventListener('click', () => { squareButton.classList.add('active'); sineButton.classList.remove('active'); triangleButton.classList.remove('active'); sawtoothButton.classList.remove('active'); initOscillator(); updateDisplay(); });
+triangleButton.addEventListener('click', () => { triangleButton.classList.add('active'); sineButton.classList.remove('active'); squareButton.classList.remove('active'); sawtoothButton.classList.remove('active'); initOscillator(); updateDisplay(); });
+sawtoothButton.addEventListener('click', () => { sawtoothButton.classList.add('active'); sineButton.classList.remove('active'); squareButton.classList.remove('active'); triangleButton.classList.remove('active'); initOscillator(); updateDisplay(); });
+
+frequencySlider.addEventListener('input', () => { frequencyValue.textContent = frequencySlider.value; initOscillator(); updateDisplay(); });
+amplitudeSlider.addEventListener('input', () => { amplitudeValue.textContent = amplitudeSlider.value; initOscillator(); updateDisplay(); });
+
+frequencyInput.addEventListener('change', () => { frequencySlider.value = frequencyInput.value; initOscillator(); updateDisplay(); });
+amplitudeInput.addEventListener('change', () => { amplitudeSlider.value = amplitudeInput.value; initOscillator(); updateDisplay(); });
+
+modulationButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        modulationType = button.id.includes('am') ? 'AM' : 'FM';
+        updateDisplay();
+    });
+});
+
+sweepButton.addEventListener('click', toggleSweep);
+
+// Initialize oscillator on load
+initOscillator();
+updateDisplay();
+
+</script>
+
+</body>
+</html>
